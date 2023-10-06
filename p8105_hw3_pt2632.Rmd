@@ -32,6 +32,7 @@ data("brfss_smart2010")
 
 # Problem 3
 ```{r}
-data("")
+acc <- read.csv("./datasets/nhanes_accel.csv")
+covar <- read.csv("./datasets/nhanes_covar.csv")
 ```
 
