@@ -1,6 +1,10 @@
 ---
 title: "p8105_hw3_pt2632"
-output: html_document
+output: 
+  github_document:
+  html_document:
+    toc: TRUE
+    float_toc: TRUE
 date: "2023-10-06"
 ---
 
@@ -8,7 +12,26 @@ date: "2023-10-06"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r}
+```{r import-lib}
 library(tidyverse)
+library(p8105.datasets)
+```
+# Problem 1
+```{r}
+# load dataset
+data("instacart")
+```
+
+
+# Problem 2
+```{r}
+# load dataset
+data("brfss_smart2010")
+```
+
+
+# Problem 3
+```{r}
+data("")
 ```
 
