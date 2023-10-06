@@ -1,0 +1,14 @@
+---
+title: "p8105_hw3_pt2632"
+output: html_document
+date: "2023-10-06"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+```
+
