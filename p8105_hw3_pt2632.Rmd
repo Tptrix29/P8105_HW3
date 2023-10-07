@@ -28,6 +28,10 @@ There are `r ncol(instacart)` variables and `r nrow(instacart)` in this datasest
 
 structure of the data, describing some key variables, and giving illstrative examples of observations
 
+
+## Answers to Questions 
+1. How many aisles are there, and which aisles are the most items ordered from?
+
 ```{r}
 length(unique(pull(instacart, aisle_id)))
 ```
@@ -39,7 +43,8 @@ instacart |>
   filter(n_orders == max_order) |>
   pull(aisle_id)
 ```
-## Plots
+2. Make a plot that shows the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered. Arrange aisles sensibly, and organize your plot so others can read it.
+
 ```{r}
 # Make a plot that shows the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered
 instacart |> 
@@ -50,7 +55,8 @@ instacart |>
   ggplot(aes(aisle_id, n_orders)) + geom_point()
 ```
 
-## Tables
+3. Make a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Include the number of times each item is ordered in your table.
+
 ```{r}
 instacart |>
   filter(aisle == "baking ingredients" | 
@@ -61,7 +67,12 @@ instacart |>
   mutate(rnk = min_rank(desc(order_count))) |>
   filter(rnk < 4) |>
   arrange(aisle, rnk)
+
+# knit as table
+knitr::kable(digits = 2)
 ```
+4. Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).
+
 ```{r}
 instacart |> 
   filter(product_name == "Pink Lady Apples" |
@@ -69,6 +80,9 @@ instacart |>
   group_by(product_name, order_dow) |>
   summarize(mean_order_hour = mean(order_hour_of_day), .groups = "drop_last") |>
   pivot_wider(names_from = order_dow, values_from = mean_order_hour)
+
+# knit as table
+knitr::kable(digits = 2)
 ```
 
 # Problem 2
@@ -76,11 +90,87 @@ instacart |>
 # load dataset
 data("brfss_smart2010")
 ```
+## Data Cleaning
+```{r}
+ordered_response <- c("Poor", "Fair", "Good", "Very good", "Excellent")
+cleaned_brfss <- brfss_smart2010 |> 
+  janitor::clean_names() |>
+  # select topic "Overall Health"
+  filter(topic == "Overall Health",
+         # select response from “Excellent” to “Poor”
+         response %in% response_selection) |>
+  # Order response from "Poor" to "Excellent"
+  mutate(response = factor(response, levels = ordered_response))
+```
+
+
+## Answers to Questions
+1. In 2002, which states were observed at 7 or more locations? What about in 2010?
+```{r}
+cleaned_brfss |>
+  filter(year == 2002) |>
+  group_by(locationabbr) |>
+  # !!!!!!!!!!!!!!! unique ???
+  summarize(n_location = n()) |>
+  filter(n_location >= 7)
+```
+```{r}
+cleaned_brfss |>
+  filter(year == 2010) |>
+  group_by(locationabbr) |>
+  # !!!!!!!!!!!!!!! unique ???
+  summarize(n_location = n()) |>
+  filter(n_location >= 7)
+```
+
+2. Construct a dataset that is limited to `Excellent` responses, and contains, year, state, and a variable that averages the `data_value` across locations within a state. 
+Make a “spaghetti” plot of this average value over time within a state (that is, make a plot showing a line for each state across years – the `geom_line` geometry and `group` aesthetic will help).
+```{r}
+cleaned_brfss |> 
+  # !!!!!!!!!!! filter NA ?
+  filter(response == "Excellent" & !is.na(data_value)) |>
+  group_by(year, locationabbr) |>
+  summarize(mean_val = mean(data_value), .groups = "drop_last") |>
+  ggplot(aes(x = year, y = mean_val)) + geom_line(aes(color = locationabbr, group = locationabbr))
+```
+
+
+3. Make a two-panel plot showing, for the years 2006, and 2010, distribution of `data_value` for responses (“Poor” to “Excellent”) among locations in NY State.
+```{r}
+cleaned_brfss |>
+  filter(year == 2006 | year == 2010 & !is.na(data_value)) |>
+  ggplot(aes(x = data_value, fill = response)) +
+  geom_density(alpha = .5) +
+  facet_grid(year ~ .)
+```
 
 
 # Problem 3
 ```{r}
 acc <- read.csv("./datasets/nhanes_accel.csv")
 covar <- read.csv("./datasets/nhanes_covar.csv")
+```
+
+## Data Manipulation
+Load, tidy, merge, and otherwise organize the data sets. Your final dataset should include all originally observed variables; exclude participants less than 21 years of age, and those with missing demographic data; and encode data with reasonable variable classes (i.e. not numeric, and using factors with the ordering of tables and plots in mind).
+```{r}
+
+```
+
+## Answers to Questions
+1. Produce a reader-friendly table for the number of men and women in each education category, and create a visualization of the age distributions for men and women in each education category. Comment on these items.
+```{r}
+
+```
+
+2. Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate across minutes to create a total activity variable for each participant. Plot these total activities (y-axis) against age (x-axis); your plot should compare men to women and have separate panels for each education level. Include a trend line or a smooth to illustrate differences. Comment on your plot.
+```{r}
+
+```
+
+3. Accelerometer data allows the inspection activity over the course of the day. Make a three-panel plot that shows the 24-hour activity time courses for each education level and use color to indicate sex. Describe in words any patterns or conclusions you can make based on this graph; including smooth trends may help identify differences.
+
+```{r}
+
 ```
 
