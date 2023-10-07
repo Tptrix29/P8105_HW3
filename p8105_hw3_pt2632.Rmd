@@ -133,18 +133,17 @@ Description:
 ## Answers to Questions
 1. In 2002, which states were observed at 7 or more locations? What about in 2010?
 
-In 2002, states including `r cleaned_brfss |> filter(year == 2002) |> group_by(locationabbr) |> summarize(n_location = n()) |> filter(n_location >= 7)` were observed at 7 or more locations.
+In 2002, states including `r cleaned_brfss |> filter(year == 2002) |> select(locationabbr, locationdesc) |> distinct() |> group_by(locationabbr) |> summarize(n_location = n()) |> filter(n_location >= 7)` were observed at 7 or more locations.
 
-In 2010, states including `r cleaned_brfss |> filter(year == 2010) |> group_by(locationabbr) |> summarize(n_location = n()) |> filter(n_location >= 7)` were observed at 7 or more locations.
+In 2010, states including `r cleaned_brfss |> filter(year == 2010) |> select(locationabbr, locationdesc) |> distinct() |> group_by(locationabbr) |> summarize(n_location = n()) |> filter(n_location >= 7)` were observed at 7 or more locations.
 
 
 2. Construct a dataset that is limited to `Excellent` responses, and contains, year, state, and a variable that averages the `data_value` across locations within a state. 
 Make a “spaghetti” plot of this average value over time within a state (that is, make a plot showing a line for each state across years – the `geom_line` geometry and `group` aesthetic will help).
 ```{r}
-cleaned_brfss |> 
-  # !!!!!!!!!!! filter NA ?
+cleaned_brfss |>
   # filter entrys with "Excellent" response
-  filter(response == "Excellent" & !is.na(data_value)) |>
+  filter(response == "Excellent") |>
   # group operation
   group_by(year, locationabbr) |>
   # calculate the mean of data_value of each group
@@ -166,7 +165,7 @@ Comments:
 ```{r}
 cleaned_brfss |>
   # filter entry from specific year
-  filter(year == 2006 | year == 2010 & !is.na(data_value)) |>
+  filter(year == 2006 | year == 2010) |>
   # density plot for each response type
   ggplot(aes(x = data_value, fill = response)) +
   geom_density(alpha = .5) +
