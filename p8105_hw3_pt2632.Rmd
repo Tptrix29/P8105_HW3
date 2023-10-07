@@ -270,7 +270,8 @@ data |>
   mutate(time_tick = parse_number(min_label)) |>
   # plot time course of 24-hour activity
   ggplot(aes(x = time_tick, y = minites, color = sex)) +
-  geom_smooth() +
+  geom_line(alpha = .2) + 
+  geom_smooth(linewidth = .8, se = FALSE) +
   facet_grid(education ~ .) +
   labs(
     title = "24-hour activity course", 
