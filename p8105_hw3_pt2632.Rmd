@@ -22,6 +22,54 @@ library(p8105.datasets)
 data("instacart")
 ```
 
+## Data Description
+
+There are `r ncol(instacart)` variables and `r nrow(instacart)` in this datasest. 
+
+structure of the data, describing some key variables, and giving illstrative examples of observations
+
+```{r}
+length(unique(pull(instacart, aisle_id)))
+```
+```{r}
+instacart |> 
+  group_by(aisle_id) |> 
+  summarize(n_orders = n()) |>
+  mutate(max_order = max(n_orders)) |>
+  filter(n_orders == max_order) |>
+  pull(aisle_id)
+```
+## Plots
+```{r}
+# Make a plot that shows the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered
+instacart |> 
+  group_by(aisle_id) |> 
+  summarize(n_orders = n()) |>
+  filter(n_orders > 10000) |>
+  arrange(aisle_id) |>
+  ggplot(aes(aisle_id, n_orders)) + geom_point()
+```
+
+## Tables
+```{r}
+instacart |>
+  filter(aisle == "baking ingredients" | 
+         aisle == "dog food care" | 
+         aisle == "packaged vegetables fruits") |>
+  group_by(aisle, product_id) |>
+  summarize(order_count = n(), .groups = "drop_last") |>
+  mutate(rnk = min_rank(desc(order_count))) |>
+  filter(rnk < 4) |>
+  arrange(aisle, rnk)
+```
+```{r}
+instacart |> 
+  filter(product_name == "Pink Lady Apples" |
+         product_name == "Coffee Ice Cream") |>
+  group_by(product_name, order_dow) |>
+  summarize(mean_order_hour = mean(order_hour_of_day), .groups = "drop_last") |>
+  pivot_wider(names_from = order_dow, values_from = mean_order_hour)
+```
 
 # Problem 2
 ```{r}
