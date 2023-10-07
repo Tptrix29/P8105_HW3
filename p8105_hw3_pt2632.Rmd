@@ -32,66 +32,92 @@ structure of the data, describing some key variables, and giving illstrative exa
 ## Answers to Questions 
 1. How many aisles are there, and which aisles are the most items ordered from?
 
-```{r}
-length(unique(pull(instacart, aisle_id)))
-```
-```{r}
-instacart |> 
-  group_by(aisle_id) |> 
-  summarize(n_orders = n()) |>
-  mutate(max_order = max(n_orders)) |>
-  filter(n_orders == max_order) |>
-  pull(aisle_id)
-```
+There are `r length(unique(pull(instacart, aisle_id)))` aisles in total. 
+The aisle with id `r instacart |> group_by(aisle_id) |> summarize(n_orders = n()) |> mutate(max_order = max(n_orders)) |> filter(n_orders == max_order) |> pull(aisle_id)` are the aisle with most order items.
+
 2. Make a plot that shows the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered. Arrange aisles sensibly, and organize your plot so others can read it.
 
 ```{r}
-# Make a plot that shows the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered
 instacart |> 
+  # group operation
   group_by(aisle_id) |> 
+  # calculate order count of each aisle
   summarize(n_orders = n()) |>
+  # select the aisle with more than 10000 ordered items
   filter(n_orders > 10000) |>
+  # arrange aisle
   arrange(aisle_id) |>
-  ggplot(aes(aisle_id, n_orders)) + geom_point()
+  # scatter point plot of "order counts" over "aisle id"
+  ggplot(aes(aisle_id, n_orders)) + geom_point(alpha = .4) +
+  labs(
+    title = "Order count in aisle", 
+    x = "aisle id", 
+    y = "order count") +
+  theme(plot.title = element_text(hjust = 0.5))
 ```
+Comments: 
+
 
 3. Make a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Include the number of times each item is ordered in your table.
 
 ```{r}
 instacart |>
+  # filter entry from specific aisle
   filter(aisle == "baking ingredients" | 
          aisle == "dog food care" | 
          aisle == "packaged vegetables fruits") |>
+  # group operation
   group_by(aisle, product_id) |>
+  # calculate the count of ordered item of specific aisle
   summarize(order_count = n(), .groups = "drop_last") |>
+  # calculate the rank of order count in decreasing order
   mutate(rnk = min_rank(desc(order_count))) |>
+  # filter the 3 most popular products of specific aisle 
   filter(rnk < 4) |>
+  # arrange data
   arrange(aisle, rnk) |> 
   # knit as table
   knitr::kable(digits = 2)
 ```
+
+Comments: 
+
+
+
 4. Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).
 
 ```{r}
 instacart |> 
+  # filter the specific product
   filter(product_name == "Pink Lady Apples" |
          product_name == "Coffee Ice Cream") |>
+  # group operation
   group_by(product_name, order_dow) |>
+  # calculate the mean order hour of each product in specific day in a week
   summarize(mean_order_hour = mean(order_hour_of_day), .groups = "drop_last") |>
-  pivot_wider(names_from = order_dow, values_from = mean_order_hour) |>
+  # transform rows to columns
+  pivot_wider(names_from = order_dow, values_from = mean_order_hour, names_prefix = "day_") |>
   # knit as table
   knitr::kable(digits = 2)
 ```
+
+
+Comments: 
+
+
 
 # Problem 2
 ```{r}
 # load dataset
 data("brfss_smart2010")
 ```
+
 ## Data Cleaning
 ```{r}
+# define level order of response
 ordered_response <- c("Poor", "Fair", "Good", "Very good", "Excellent")
 cleaned_brfss <- brfss_smart2010 |> 
+  # tidy colnames
   janitor::clean_names() |>
   # select topic "Overall Health"
   filter(topic == "Overall Health",
@@ -100,51 +126,65 @@ cleaned_brfss <- brfss_smart2010 |>
   # Order response from "Poor" to "Excellent"
   mutate(response = factor(response, levels = ordered_response))
 ```
+Description:
+
 
 
 ## Answers to Questions
 1. In 2002, which states were observed at 7 or more locations? What about in 2010?
-```{r}
-cleaned_brfss |>
-  filter(year == 2002) |>
-  group_by(locationabbr) |>
-  # !!!!!!!!!!!!!!! unique ???
-  summarize(n_location = n()) |>
-  filter(n_location >= 7)
-```
-```{r}
-cleaned_brfss |>
-  filter(year == 2010) |>
-  group_by(locationabbr) |>
-  # !!!!!!!!!!!!!!! unique ???
-  summarize(n_location = n()) |>
-  filter(n_location >= 7)
-```
+
+In 2002, states including `r cleaned_brfss |> filter(year == 2002) |> group_by(locationabbr) |> summarize(n_location = n()) |> filter(n_location >= 7)` were observed at 7 or more locations.
+
+In 2010, states including `r cleaned_brfss |> filter(year == 2010) |> group_by(locationabbr) |> summarize(n_location = n()) |> filter(n_location >= 7)` were observed at 7 or more locations.
+
 
 2. Construct a dataset that is limited to `Excellent` responses, and contains, year, state, and a variable that averages the `data_value` across locations within a state. 
 Make a “spaghetti” plot of this average value over time within a state (that is, make a plot showing a line for each state across years – the `geom_line` geometry and `group` aesthetic will help).
 ```{r}
 cleaned_brfss |> 
   # !!!!!!!!!!! filter NA ?
+  # filter entrys with "Excellent" response
   filter(response == "Excellent" & !is.na(data_value)) |>
+  # group operation
   group_by(year, locationabbr) |>
+  # calculate the mean of data_value of each group
   summarize(mean_val = mean(data_value), .groups = "drop_last") |>
-  ggplot(aes(x = year, y = mean_val)) + geom_line(aes(color = locationabbr, group = locationabbr))
+  # line plot
+  ggplot(aes(x = year, y = mean_val)) + 
+  geom_line(aes(color = locationabbr, group = locationabbr), alpha = .5) +
+  labs(
+    title = "Average value over time for states", 
+    x = "year", 
+    y = "mean value") +
+  theme(plot.title = element_text(hjust = 0.5))
 ```
+Comments: 
+
 
 
 3. Make a two-panel plot showing, for the years 2006, and 2010, distribution of `data_value` for responses (“Poor” to “Excellent”) among locations in NY State.
 ```{r}
 cleaned_brfss |>
+  # filter entry from specific year
   filter(year == 2006 | year == 2010 & !is.na(data_value)) |>
+  # density plot for each response type
   ggplot(aes(x = data_value, fill = response)) +
   geom_density(alpha = .5) +
-  facet_grid(year ~ .)
+  # plot panels
+  facet_grid(year ~ .) +
+  labs(
+    title = "Distribution of data_value", 
+    x = "data_value") +
+  theme(plot.title = element_text(hjust = 0.5))
 ```
+Comments: 
+
+
 
 
 # Problem 3
 ```{r}
+# load data
 acc <- tibble(read.csv("./datasets/nhanes_accel.csv"))
 covar <- tibble(read.csv("./datasets/nhanes_covar.csv", skip = 4))
 ```
@@ -154,8 +194,11 @@ Load, tidy, merge, and otherwise organize the data sets.
 Your final dataset should include all originally observed variables; exclude participants less than 21 years of age, and those with missing demographic data; and encode data with reasonable variable classes (i.e. not numeric, and using factors with the ordering of tables and plots in mind).
 ```{r}
 data <- 
+  # merge 2 dataset
   left_join(covar, acc, by = join_by(SEQN == SEQN)) |>
+  # filter entry with age >= 21 and non-NA demographic data
   filter(age >= 21 & !is.na(sex) & !is.na(age) & !is.na(BMI) & !is.na(education)) |>
+  # change variable class (numeric to factor)
   mutate(sex = factor(
     case_match(sex, 1 ~ "male", 2 ~ "female"), 
     levels = c("male", "female")), 
@@ -167,40 +210,77 @@ data <-
            levels = c("Less than high school", "High school equivalent", "More than high school"))
 )
 ```
+Description: 
+
+
 
 ## Answers to Questions
 1. Produce a reader-friendly table for the number of men and women in each education category, and create a visualization of the age distributions for men and women in each education category. Comment on these items.
 ```{r}
 data |> 
-  group_by(sex, education) |> 
+  # group operation
+  group_by(sex, education) |>
+  # calculate the count of entries in each group
   summarize(count = n(), .groups = "drop_last") |> 
   # knit as table
   knitr::kable(digits = 0)
 ```
+Comments:
+
+
 ```{r}
 data |>
-  ggplot(aes(x = age)) + geom_density(aes(fill = sex), alpha = .4) + facet_grid(education ~ .)
+  # density plot for different education levels and sex
+  ggplot(aes(x = age)) + geom_density(aes(fill = sex), alpha = .4) + facet_grid(education ~ .) +
+  labs(
+    title = "Age distribution of different sex and education background", 
+    x = "age") +
+  theme(plot.title = element_text(hjust = 0.5))
 ```
 
 2. Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate across minutes to create a total activity variable for each participant. Plot these total activities (y-axis) against age (x-axis); your plot should compare men to women and have separate panels for each education level. Include a trend line or a smooth to illustrate differences. Comment on your plot.
 ```{r}
 data |> 
+  # transform columns to rows
   pivot_longer(cols = starts_with("min"), names_to = "min_label", values_to = "minites") |>
+  # group operation
   group_by(SEQN, sex, education, age) |>
+  # calculate the total activity time of each participant
   summarize(total_activity_time = sum(minites), .groups = "drop_last") |>
+  # point plot and smooth plot
   ggplot(aes(x = age, y = total_activity_time)) + 
   geom_point(alpha = .4, color = "tomato") + geom_smooth() +
-  facet_grid(sex ~ education)
+  facet_grid(sex ~ education) +
+  labs(
+    title = "Total activity time over age", 
+    x = "age", 
+    y = "mean value") +
+  theme(plot.title = element_text(hjust = 0.5))
 ```
+
+Comments:
+
 
 3. Accelerometer data allows the inspection activity over the course of the day. Make a three-panel plot that shows the 24-hour activity time courses for each education level and use color to indicate sex. Describe in words any patterns or conclusions you can make based on this graph; including smooth trends may help identify differences.
 
 ```{r}
 data |> 
+  # transform columns to rows 
   pivot_longer(cols = starts_with("min"), names_to = "min_label", values_to = "minites") |>
+  # parse time label
   mutate(time_tick = parse_number(min_label)) |>
+  # plot time course of 24-hour activity
   ggplot(aes(x = time_tick, y = minites, color = sex)) +
   geom_smooth() +
-  facet_grid(education ~ .)
+  facet_grid(education ~ .) +
+  labs(
+    title = "24-hour activity course", 
+    x = "time", 
+    y = "acticity") +
+  theme(plot.title = element_text(hjust = 0.5))
 ```
+Description:
+
+Conclusion:
+
 
