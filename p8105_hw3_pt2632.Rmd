@@ -24,21 +24,56 @@ data("instacart")
 
 ## Data Description
 
-There are `r ncol(instacart)` variables and `r nrow(instacart)` in this datasest. 
+There are `r ncol(instacart)` variables and `r nrow(instacart)` in this dataset. 
 
-structure of the data, describing some key variables, and giving illstrative examples of observations
+Structure of the data: 2-d dataframe
 
+Key variables:  
+  - `order_id`: order identifier
+
+  - `product_id`: product identifier
+
+  - `add_to_cart_order`: order in which each product was added to cart 
+
+  - `reordered`: 1 = this prodcut has been ordered by this user in the past, 0 = otherwise
+
+  - `user_id`: customer identifier
+
+  - `eval_set`: which evaluation set this order belongs in (Note that the data for use in this class is exclusively from the “train” eval_set)
+
+  - `order_number`: the order sequence number for this user (1=first, n=nth)
+
+  - `order_dow`: the day of the week on which the order was placed
+
+  - `order_hour_of_day`: the hour of the day on which the order was placed
+
+  - `days_since_prior_order`: days since the last order, capped at 30, NA if order_number=1
+    
+  - `product_name`: name of the product
+
+  - `aisle_id`: aisle identifier
+
+  - `department_id`: department identifier
+
+  - `aisle`: the name of the aisle
+
+  - `department`: the name of the department
+
+
+  Illustrative examples of observation: 
+
+  For `r instacart[1, "order_number"]`-th order (order_id: `r instacart[1, "order_id"]`) of customer (user_id: `r instacart[1, "user_id"]`), there is a `r instacart[1, "product_name"]`(product_id: `r instacart[1, "product_id"]`) placed as the `r instacart[1, "add_to_cart_order"]`-th item in the cart. It was ordered by this customer in past and the last order of this customer was placed on `r instacart[1, "days_since_prior_order"]` days before. This slice of data comes from "`r instacart[1, "eval_set"]`" evaluation set. The placed time of this item is in `r instacart[1, "order_hour_of_day"]`-th hour on the `r instacart[1, "order_dow"]+1`-th day in a week. And this product is transported from the `r instacart[1, "department"]` department (department_id: `r instacart[1, "department_id"]`) of `r instacart[1, "aisle"]` aisle (aisle_id: `r instacart[1, "aisle_id"]`).
 
 ## Answers to Questions 
 1. How many aisles are there, and which aisles are the most items ordered from?
 
-There are `r length(unique(pull(instacart, aisle_id)))` aisles in total. 
-The aisle with id `r instacart |> group_by(aisle_id) |> summarize(n_orders = n()) |> mutate(max_order = max(n_orders)) |> filter(n_orders == max_order) |> pull(aisle_id)` are the aisle with most order items.
+  There are `r length(unique(pull(instacart, aisle_id)))` aisles in total. 
+  The aisle with id `r instacart |> group_by(aisle_id) |> summarize(n_orders = n()) |> mutate(max_order = max(n_orders)) |> filter(n_orders == max_order) |> pull(aisle_id)` are the aisle with most order items.
 
 2. Make a plot that shows the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered. Arrange aisles sensibly, and organize your plot so others can read it.
 
 ```{r}
-instacart |> 
+slice1 <- instacart |> 
   # group operation
   group_by(aisle_id) |> 
   # calculate order count of each aisle
@@ -46,16 +81,18 @@ instacart |>
   # select the aisle with more than 10000 ordered items
   filter(n_orders > 10000) |>
   # arrange aisle
-  arrange(aisle_id) |>
+  arrange(aisle_id)
   # scatter point plot of "order counts" over "aisle id"
-  ggplot(aes(aisle_id, n_orders)) + geom_point(alpha = .4) +
+  ggplot(slice1, aes(aisle_id, n_orders)) + geom_point(alpha = .4) +
   labs(
     title = "Order count in aisle", 
     x = "aisle id", 
     y = "order count") +
   theme(plot.title = element_text(hjust = 0.5))
 ```
-Comments: 
+
+  Comments: 
+  There are `r nrow(slice1)` aisles with more than 10000 item ordered. 2 of them have more than 120000 item ordered, 3 aisle's ordered items count between 40000 and 80000. And the rest of them are with less than 40000 ordered items.
 
 
 3. Make a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Include the number of times each item is ordered in your table.
@@ -80,7 +117,8 @@ instacart |>
   knitr::kable(digits = 2)
 ```
 
-Comments: 
+  Comments: 
+  The top 3 popular items in "baking ingredients" aisle is the item with id 23537, 23405 and 49533. The top 3 popular items in "dog food care" aisle is the item with id 722, 23329 and 17471. The top 3 popular items in "packaged vegetables fruits" aisle is the item with id 21903, 27966 and 39275.
 
 
 
@@ -102,7 +140,9 @@ instacart |>
 ```
 
 
-Comments: 
+  Comments: 
+  The average ordering hour of Coffee Ice Cream is between 12 and 16 in a week.
+  The average ordering hour of Pink Lady Apples is between 11 and 15 in a week.
 
 
 
@@ -116,7 +156,8 @@ data("brfss_smart2010")
 ```{r}
 # define level order of response
 ordered_response <- c("Poor", "Fair", "Good", "Very good", "Excellent")
-cleaned_brfss <- brfss_smart2010 |> 
+cleaned_brfss <- 
+  brfss_smart2010 |> 
   # tidy colnames
   janitor::clean_names() |>
   # select topic "Overall Health"
@@ -126,16 +167,39 @@ cleaned_brfss <- brfss_smart2010 |>
   # Order response from "Poor" to "Excellent"
   mutate(response = factor(response, levels = ordered_response))
 ```
-Description:
 
-
+Description: 
+There are `r nrow(cleaned_brfss)` observations and `r ncol(cleaned_brfss)` variables in the cleaned dataset.
 
 ## Answers to Questions
 1. In 2002, which states were observed at 7 or more locations? What about in 2010?
 
-In 2002, states including `r cleaned_brfss |> filter(year == 2002) |> select(locationabbr, locationdesc) |> distinct() |> group_by(locationabbr) |> summarize(n_location = n()) |> filter(n_location >= 7)` were observed at 7 or more locations.
+```{r}
+cleaned_brfss |> 
+  filter(year == 2002) |> 
+  select(locationabbr, locationdesc) |> 
+  distinct() |> 
+  group_by(locationabbr) |> 
+  summarize(n_location = n()) |> 
+  filter(n_location >= 7) |>
+  knitr::kable()
+```
 
-In 2010, states including `r cleaned_brfss |> filter(year == 2010) |> select(locationabbr, locationdesc) |> distinct() |> group_by(locationabbr) |> summarize(n_location = n()) |> filter(n_location >= 7)` were observed at 7 or more locations.
+  In 2002, 6 states in table above were observed at 7 or more locations.
+
+```{r}
+cleaned_brfss |> 
+  filter(year == 2010) |> 
+  select(locationabbr, locationdesc) |> 
+  distinct() |> 
+  group_by(locationabbr) |> 
+  summarize(n_location = n()) |> 
+  filter(n_location >= 7) |>
+  knitr::kable()
+
+```
+
+  In 2010, 14 states in table above were observed at 7 or more locations.
 
 
 2. Construct a dataset that is limited to `Excellent` responses, and contains, year, state, and a variable that averages the `data_value` across locations within a state. 
@@ -157,8 +221,10 @@ cleaned_brfss |>
     y = "mean value") +
   theme(plot.title = element_text(hjust = 0.5))
 ```
-Comments: 
 
+Comments: 
+    
+The mean value of each state are fluctuating along with the time, but all of them are between 10 and 30.
 
 
 3. Make a two-panel plot showing, for the years 2006, and 2010, distribution of `data_value` for responses (“Poor” to “Excellent”) among locations in NY State.
@@ -176,21 +242,26 @@ cleaned_brfss |>
     x = "data_value") +
   theme(plot.title = element_text(hjust = 0.5))
 ```
+
 Comments: 
+    
+There are no significant difference between the distribution of data value in specific response category in 2006 and that in 2010. The data value of people gave "Poor" response are mostly around 4, the data value of people gave "Fair" response are mostly around 10, the data value of people gave "Good" response are mostly around 20, the data value of people gave "Very Good" response are mostly around 30, the data value of people gave "Excellent" response are mostly around 36.
 
 
 
 
 # Problem 3
+
+## Data Manipulation
+Load, tidy, merge, and otherwise organize the data sets. 
+Your final dataset should include all originally observed variables; exclude participants less than 21 years of age, and those with missing demographic data; and encode data with reasonable variable classes (i.e. not numeric, and using factors with the ordering of tables and plots in mind).
+
 ```{r}
 # load data
 acc <- tibble(read.csv("./datasets/nhanes_accel.csv"))
 covar <- tibble(read.csv("./datasets/nhanes_covar.csv", skip = 4))
 ```
 
-## Data Manipulation
-Load, tidy, merge, and otherwise organize the data sets. 
-Your final dataset should include all originally observed variables; exclude participants less than 21 years of age, and those with missing demographic data; and encode data with reasonable variable classes (i.e. not numeric, and using factors with the ordering of tables and plots in mind).
 ```{r}
 data <- 
   # merge 2 dataset
@@ -209,7 +280,9 @@ data <-
            levels = c("Less than high school", "High school equivalent", "More than high school"))
 )
 ```
-Description: 
+
+
+Description: There are `r nrow(data)` observations and `r ncol(data)` variables in the merged and filtered dataset.
 
 
 
@@ -224,8 +297,11 @@ data |>
   # knit as table
   knitr::kable(digits = 0)
 ```
-Comments:
 
+Comments: 
+The count of male participant with different education: More than high school > High school equivalent > Less than high school.
+
+The count of female participant with different education: More than high school > Less than high school > High school equivalent.
 
 ```{r}
 data |>
@@ -236,6 +312,13 @@ data |>
     x = "age") +
   theme(plot.title = element_text(hjust = 0.5))
 ```
+
+Comments: 
+The age of both male and female participants with less than high school education are mostly around 70. 
+The age of male participants with high school equivalent education are mostly around 60, while the age of female participants with high school equivalent education are mostly around 74. 
+The age of male participants with more than high school education are mostly around 31, while the age of female participants with more than high school education are mostly around 33. 
+
+The higher the education level is, the smaller the participant age is.
 
 2. Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate across minutes to create a total activity variable for each participant. Plot these total activities (y-axis) against age (x-axis); your plot should compare men to women and have separate panels for each education level. Include a trend line or a smooth to illustrate differences. Comment on your plot.
 ```{r}
@@ -257,7 +340,8 @@ data |>
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
-Comments:
+Comments: 
+The activity time of participant is mostly decreasing along with the age, while sometimes there exists 1-2 peak occurring in specific age. The fluctuating range of male participants is less than that of female participants. 
 
 
 3. Accelerometer data allows the inspection activity over the course of the day. Make a three-panel plot that shows the 24-hour activity time courses for each education level and use color to indicate sex. Describe in words any patterns or conclusions you can make based on this graph; including smooth trends may help identify differences.
@@ -279,8 +363,10 @@ data |>
     y = "acticity") +
   theme(plot.title = element_text(hjust = 0.5))
 ```
-Description:
+    
+Description: 
+The smooth lines of male and female are with no significant difference in group with any education background. The activity is always stronger after 300 minutes. The activity strength is with no significant difference between male participants and female participants from less than high school / high school equivalent education background. But the participants with more than high school education, the male tend to be most active around 500 minutes and 1200 minutes, while the female tend to be most active around 500 minutes.
 
 Conclusion:
-
+The participants usually become less active after midnight (before 400 minutes) and become more active at daytime (400-1300 minutes). The activity strength of participants from less than high school / high school equivalent education background is with no sex-specific difference, while that of participants with more than high school education is different. The male participants with more than high school education tend to be most active at morning and after dinner(around 500 minutes and 1200 minutes), while female participants with most than high school education tend to be more active only at morning (around 500 minutes).
 
